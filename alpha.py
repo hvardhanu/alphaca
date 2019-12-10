@@ -14,17 +14,11 @@ def get_avg_price(days=3,symbol='MSFT'):
     start_date = end_date-DateOffset(days=3)
     end_date_iso = end_date.isoformat()
     start_date_iso = start_date.isoformat()
-    bars = api.get_barset(symbol,timeframe='day',start=start_date_iso,end=end_date_iso)
-    length = len(bars['MSFT'])
-    closed_end = bars[symbol][length-1].c
-    closed_start = bars[symbol][length-days].c
+    bars = api.get_barset(symbol,timeframe='day',start=start_date_iso,end=end_date_iso,limit=3)
+    length = len(bars[symbol])
+    closed_end = bars[symbol][-1].c
+    closed_start = bars[symbol][0].c
     perc_change = (closed_end-closed_start)/closed_start
-    #print(closed_end,closed_start,perc_change)
-    #print(bars['MSFT'])
-    #for bar in bars[symbol]:
-      #  print(bar.t)
-    #print(start_date_iso)
-    #print(end_date_iso)
     return perc_change
 
 def main_func():
@@ -58,4 +52,5 @@ def main_func():
 
     print(perc_change)
 
-main_func()
+if __name__ == '__main__':
+    main_func()
