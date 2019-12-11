@@ -15,42 +15,52 @@ def get_avg_price(days=3,symbol='MSFT'):
     end_date_iso = end_date.isoformat()
     start_date_iso = start_date.isoformat()
     bars = api.get_barset(symbol,timeframe='day',start=start_date_iso,end=end_date_iso,limit=3)
-    length = len(bars[symbol])
     closed_end = bars[symbol][-1].c
     closed_start = bars[symbol][0].c
     perc_change = (closed_end-closed_start)/closed_start
     return perc_change
 
 def main_func():
+     perc_change = get_avg_price(3,'MSFT')
+     strategy('MSFT',perc_change)
     
+def strategy(symbol="",perc_change=0,isTest=False):    
     account = api.get_account()
-    cash = account.cash
+    buying_power = account.buying_power
 
     #Get positions
     print(api.list_positions())
-
-    #Get list of all orders
-    #print(api.list_orders())
-
-    #print(api.get_barset('MSFT',timeframe='1D'))
-
-
-    perc_change = get_avg_price(3,'MSFT')
+    order_type=""
+    print(perc_change)
 
     if perc_change < -0.005:
-        bar = api.get_barset(symbols='MSFT',timeframe='min',limit=1)
-        price = bar['MSFT'][0].c
-        quantity = cash*0.5/price
-        api.submit_order(symbol='MSFT',qty=1, side='buy',time_in_force='gtc',type='market')
+        if isTest:
+            print("Seems like a unit test is running")
+            bar = api.get_barset(symbol,timeframe='day',limit=1)
+        else:
+            bar = api.get_barset(symbol,timeframe='min',limit=1)
+
+        price = bar[symbol][0].c
+        #print(type(buying_power))
+        #print(type(price))
+        quantity = float(buying_power)/float(price)
+        quantity = int(quantity)
+        print("buying_power ",buying_power)
+        print("Number of stocks bought ",quantity)
+        order_type="BOUGHT"
+        api.submit_order(symbol=symbol,qty=quantity, side='buy',time_in_force='gtc',type='market')
     elif perc_change > 0.008:
         try:
-            api.close_position(symbol='MSFT')
+            api.close_position(symbol=symbol)
+
+            order_type="SOLD"
         except Exception as e:
             print(e)
             print("Error ocurred while closing position, maybe no open position exist?")
+    return order_type
 
-
-    print(perc_change)
+def cancelAllOrders():
+    api.cancel_all_orders()
 
 if __name__ == '__main__':
      main_func()
