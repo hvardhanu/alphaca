@@ -27,13 +27,14 @@ def main_func():
 def strategy(symbol="",perc_change=0,isTest=False):    
     account = api.get_account()
     buying_power = account.buying_power
+    print(account.portfolio_value)
 
     #Get positions
     print(api.list_positions())
     order_type=""
     print(perc_change)
 
-    if perc_change < -0.005:
+    if perc_change < -0.003:
         if isTest:
             print("Seems like a unit test is running")
             bar = api.get_barset(symbol,timeframe='day',limit=1)
@@ -49,7 +50,7 @@ def strategy(symbol="",perc_change=0,isTest=False):
         print("Number of stocks bought ",quantity)
         order_type="BOUGHT"
         api.submit_order(symbol=symbol,qty=quantity, side='buy',time_in_force='gtc',type='market')
-    elif perc_change > 0.008:
+    elif perc_change > 0.011:
         try:
             api.close_position(symbol=symbol)
 
