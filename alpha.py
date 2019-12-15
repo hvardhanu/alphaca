@@ -11,17 +11,19 @@ def get_avg_price(days=3,symbol='MSFT'):
     #TODO Implement market clock
     #Start date is current date and end date is 'days' before start date
     end_date = pd.Timestamp(datetime.date.today())
-    start_date = end_date-DateOffset(days=3)
+    start_date = end_date-DateOffset(days=days)
     end_date_iso = end_date.isoformat()
     start_date_iso = start_date.isoformat()
-    bars = api.get_barset(symbol,timeframe='day',start=start_date_iso,end=end_date_iso,limit=3)
+    bars = api.get_barset(symbol,timeframe='day',start=start_date_iso,
+                        end=end_date_iso,limit=days)
+    #print(bars)
     closed_end = bars[symbol][-1].c
     closed_start = bars[symbol][0].c
     perc_change = (closed_end-closed_start)/closed_start
     return perc_change
 
 def main_func():
-     perc_change = get_avg_price(3,'MSFT')
+     perc_change = get_avg_price(4,'MSFT')
      strategy('MSFT',perc_change)
     
 def strategy(symbol="",perc_change=0,isTest=False):    
@@ -49,7 +51,7 @@ def strategy(symbol="",perc_change=0,isTest=False):
         print("buying_power ",buying_power)
         print("Number of stocks bought ",quantity)
         order_type="BOUGHT"
-        api.submit_order(symbol=symbol,qty=quantity, side='buy',time_in_force='gtc',type='market')
+        api.submit_order(symbol=symbol,qty=quantity, side='buy',time_in_force='day',type='market')
     elif perc_change > 0.011:
         try:
             api.close_position(symbol=symbol)
