@@ -8,7 +8,7 @@ class AlphaTest(unittest.TestCase):
         pass
 
     def test_get_avg_price(self):
-        self.assertEqual(alpha.get_avg_price(3,'MSFT'), -0.00382207578253715)
+        self.assertEqual(alpha.get_avg_price(4,'MSFT'), -0.00382207578253715)
     
     def test_bought_strategy(self):
         sample_return = -0.7
