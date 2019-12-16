@@ -12,8 +12,8 @@ import pandas as pd
 import numpy as np
 
 ALPACA_PAPER = True
-IS_LIVE = False
-IS_OPTIMIZE = True
+IS_LIVE = True
+IS_OPTIMIZE = False
 
 class SmaCross(bt.Strategy):
 
@@ -24,14 +24,18 @@ class SmaCross(bt.Strategy):
     # print(self.p.low)
     self.startcash=cerebro.broker.getcash()
     self.pctCh = bt.ind.PctChange(period=self.p.period)
+    #self.longterm_ind = bt.ind.PctChange(period=15)
     
   
   def next(self):
-    #print(self.p.low)
-
-    if self.pctCh < self.p.low:
+    #print("In Next",self.pctCh[0])
+    #print(type(self.pctCh[0]))
+    print(self.pctCh[0] < self.p.low)
+    if (self.pctCh[0] < self.p.low):
+      print("Buy")
       self.buy()
-    if self.pctCh > self.p.high:
+    if (self.pctCh[0] > self.p.high):
+      print("close")
       self.close()
   def stop(self):
     pnl = round(self.broker.getvalue() - self.startcash,2)
@@ -53,6 +57,7 @@ if IS_OPTIMIZE:
 else:
   cerebro = bt.Cerebro()
   cerebro.addstrategy(SmaCross)
+
 cerebro.addsizer(bt.sizers.PercentSizer, percents=20)
 #cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharperatio')
 
@@ -71,21 +76,25 @@ DataFactory = store.getdata  # or use alpaca_backtrader_api.AlpacaData
 
 if IS_LIVE:
   data0 = DataFactory(
-      dataname='MSFT',
+      dataname='AAPL',
       timeframe=bt.TimeFrame.TFrame("Days"))
 else:
    data0 = DataFactory(
-      dataname='MSFT',
+      dataname='AAPL',
       timeframe=bt.TimeFrame.TFrame("Days"),
-      fromdate=pd.Timestamp('2019-07-30'),
-      todate=pd.Timestamp('2019-9-30'),
+      fromdate=pd.Timestamp('2018-02-26'),
+      todate=pd.Timestamp('2019-04-18'),
       historical=True)
 
 cerebro.adddata(data0)
 
 print(cerebro.broker.getcash())
 print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
-cerebro.run()
+stats = cerebro.run()
+thestat =stats[0]
+# print("After cerebro run stats",stats)
 print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+#print('Analyzer sharperatio:', thestat.analyzers.sharperatio.get_analysis())
+
 if not IS_OPTIMIZE:
   cerebro.plot()

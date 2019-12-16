@@ -7,8 +7,8 @@ import alpaca_trade_api as tradeapi
 
 class BaseAlpha:
     def __init__(self):
-        api = tradeapi.REST(key_id='PK8TJB4I5YZ4IRO6VVM8',
-                    secret_key='pzJIbG8itMk1KNMAYYgZ/ZVa4IogpHIMoKTzFB7r',
+        api = tradeapi.REST(key_id='PK714C2Y2AKEKG1GJHAQ',
+                    secret_key='NwgIb/ZhtYWvEyulzuv6BfWnQJk0iqmxSnO/snKv',
                     base_url='https://paper-api.alpaca.markets',
                     api_version='v2')  # or use ENV Vars shown below
         self.api = api
