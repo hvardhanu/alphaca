@@ -5,6 +5,7 @@ import pandas as pd
 import BaseAlpha as BaseAlpha
 
 def main_func():
+    print("Started on:",datetime.datetime.today())
     base = BaseAlpha.BaseAlpha()
     perc_change = base.get_avg_price(4, 'MSFT')
     strategy(base,'MSFT', perc_change, base)
