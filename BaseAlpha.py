@@ -47,13 +47,8 @@ class BaseAlpha:
 
         # TODO Implement market clock
         # Start date is current date and end date is 'days' before start date
-        end_date = pd.Timestamp(datetime.date.today())
-        start_date = end_date-DateOffset(days=days)
-        end_date_iso = end_date.isoformat()
-        start_date_iso = start_date.isoformat()
         try:
-            bars = self.api.get_barset(symbol, timeframe='day', start=start_date_iso,
-                                       end=end_date_iso, limit=days)
+            bars = self.api.get_barset(symbol, timeframe='day', limit=days)
         except tradeapi.rest.APIError as e:
             print("Error in get_avg_price while getting bars- ", e)
         # print(bars)

@@ -8,13 +8,14 @@ def main_func():
     print("Started on:",datetime.datetime.today())
     base = BaseAlpha.BaseAlpha()
     perc_change = base.get_avg_price(4, 'MSFT')
-    strategy(base,'MSFT', perc_change, base)
+    action = strategy(base,'MSFT', perc_change, base)
+    print(action)
 
 
 def strategy(base, symbol="", perc_change=0, isTest=False):
     
     buying_power = base.get_buying_power()
-    order_type = ""
+    order_type = "None"
     print("Percentage Change:",perc_change)
 
     if perc_change < -0.003:
