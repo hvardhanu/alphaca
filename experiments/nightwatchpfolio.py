@@ -13,39 +13,28 @@ import numpy as np
 
 ALPACA_PAPER = True
 IS_LIVE = False
-IS_OPTIMIZE = False
+IS_OPTIMIZE = True
 
 class SmaCross(bt.Strategy):
 
-  params = (('low',-0.005),('high',0.01),('period',10))
+  params = (('equity',0.5))
 
   def __init__(self):
     # print("Init")
     # print(self.p.low)
+    self.stock1 = self.datas[0]
+    self.stock2 = self.datas[1]
     self.startcash=cerebro.broker.getcash()
-    self.pctCh = bt.ind.PctChange(period=self.p.period)
-    #self.longterm_ind = bt.ind.PctChange(period=15)
-  
-  def notify_cashvalue(init, cash,value):
-    print("Cash:",cash," Pf Value:",value)
+    
   
   def next(self):
-    #print("In Next",self.pctCh[0])
-    for x in self.pctCh:
-      print(x)
-    #print(self.pctCh)
-    print(self.pctCh[0] < self.p.low)
-    if (self.pctCh[0] < self.p.low):
-      print("Buy")
-      self.buy()
-    if (self.pctCh[0] > self.p.high):
-      print("close")
-      self.close()
- 
+    #print(self.p.low)
+    self.order_target_percent(self.stock1, target=self.params.equity)
+    self.order_target_percent(self.stock2, target=(1 - self.params.equity))
+
   def stop(self):
     pnl = round(self.broker.getvalue() - self.startcash,2)
-    print(' Period:{} Low: {} High:{} Final PnL: {}'.format(
-            self.p.period, self.p.low, self.p.high , pnl))
+    print(' Pnl:{}'.format(pnl))
 
   
   # def notify_fund(self, cash, value, fundvalue, shares):
@@ -63,8 +52,8 @@ else:
   cerebro = bt.Cerebro()
   cerebro.addstrategy(SmaCross)
 
-cerebro.addsizer(bt.sizers.PercentSizer, percents=20)
-#cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharperatio')
+#cerebro.addsizer(bt.sizers.PercentSizer, percents=20)
+cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharperatio')
 
 store = alpaca_backtrader_api.AlpacaStore(
     paper=ALPACA_PAPER
@@ -84,14 +73,24 @@ if IS_LIVE:
       dataname='AAPL',
       timeframe=bt.TimeFrame.TFrame("Days"))
 else:
+   fm=pd.Timestamp('2018-02-26')
+   to=pd.Timestamp('2019-04-18')
+   pf = ['AAPL','MSFT']
    data0 = DataFactory(
-      dataname='AAPL',
+      dataname=pf,
       timeframe=bt.TimeFrame.TFrame("Days"),
-      fromdate=pd.Timestamp('2018-02-26'),
-      todate=pd.Timestamp('2019-04-18'),
+      fromdate=fm,
+      todate=to,
       historical=True)
+  #  data1 = DataFactory(
+  #     dataname=pf[1],
+  #     timeframe=bt.TimeFrame.TFrame("Days"),
+  #     fromdate=fm,
+  #     todate=to,
+  #     historical=True)
 
 cerebro.adddata(data0)
+#cerebro.adddata(data1)
 
 print(cerebro.broker.getcash())
 print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
@@ -99,7 +98,7 @@ stats = cerebro.run()
 thestat =stats[0]
 # print("After cerebro run stats",stats)
 print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
-#print('Analyzer sharperatio:', thestat.analyzers.sharperatio.get_analysis())
+print('Analyzer sharperatio:', thestat.analyzers.sharperatio.get_analysis())
 
 if not IS_OPTIMIZE:
   cerebro.plot()
