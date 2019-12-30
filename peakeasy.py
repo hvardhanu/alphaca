@@ -8,8 +8,8 @@ import numpy as np
 from pytz import timezone
 
 
-IS_OFFLINE_TESTING = True
-IS_BACKTEST = True
+IS_OFFLINE_TESTING = False
+IS_BACKTEST = False
 DAYS_TO_BACKTEST = 90 
 base = BaseAlpha.BaseAlpha()
 
