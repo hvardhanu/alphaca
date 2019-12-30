@@ -49,7 +49,8 @@ def main_init(date):
         date = timestamp.strftime("%Y-%m-%d")
         period = period-1
     
-    ar_close = np.array(df_data['close'])
+    #API Gives today's bar as well we dont want that
+    ar_close = np.array(df_data['close'][:-1])
     # adding the latest price as the getArrayFromBars does not have today's price
     if not IS_BACKTEST:
         ar_close = np.append(ar_close, latestPrice)
