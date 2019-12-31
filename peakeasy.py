@@ -10,7 +10,7 @@ from pytz import timezone
 
 IS_OFFLINE_TESTING = False
 IS_BACKTEST = False
-DAYS_TO_BACKTEST = 90 
+DAYS_TO_BACKTEST = 60 
 base = BaseAlpha.BaseAlpha()
 
 def main_init(date):
@@ -30,30 +30,33 @@ def main_init(date):
     period = 6
     stoplossFactor = 0.85
     stock = 'MSFT'
+    
+
+    # getting one less period as we will add an extra i.e. today's price later
+    #period = period-1
     df_data = base.getArrayFromBars(stock, period,date)
     print(df_data)
 
     latestPrice = float(base.getCurrentPrice(stock))
-    #latestPrice = 190
+
     buying_power = float(base.get_buying_power())
     buy_quantity = 0
 
     if latestPrice > 0:
-        buy_quantity = int(buying_power/latestPrice)
+        #Reducing by one to ensure we have sufficient cash in case of minor price increase
+        buy_quantity = int(buying_power/latestPrice)-1
     else:
         print("latestPrice is {},setting buy quantity to 0".format(latestPrice))
 
     
     if not IS_BACKTEST:
-        # getting one less period as we will add an extra i.e. today's price later
         date = timestamp.strftime("%Y-%m-%d")
-        period = period-1
     
     #API Gives today's bar as well we dont want that
-    ar_close = np.array(df_data['close'][:-1])
+    ar_close = np.array(df_data['close'])
     # adding the latest price as the getArrayFromBars does not have today's price
-    if not IS_BACKTEST:
-        ar_close = np.append(ar_close, latestPrice)
+    
+    #ar_close = np.append(ar_close, latestPrice)
 
     print(ar_close)
     isPeak = base.isPeak(ar_close)
@@ -74,7 +77,10 @@ def main_init(date):
     if isTrough:
         # place a buy order and a stop loss order,
         # cancel/liquidate buy if stop loss is not placed
-        base.placeBuyWithStop(stock,buy_quantity,stoplossFactor)
+        if buy_quantity>0:
+            base.placeBuyWithStop(stock,buy_quantity,stoplossFactor)
+        else:
+            print("buy_quantity<=0, no buy trade placed")
     
     print("Adios for today!")
 
@@ -91,7 +97,8 @@ def backTest():
     print("Starting Portfolio {}".format(base.btPortfolio))
     for calendar in calendars:
         print(calendar)
-        main_init(calendar.date)
+        #adding 20 hours to make it EOD
+        main_init(calendar.date+timedelta(hours=20))
     print("Ending Portfolio {}".format(base.btPortfolio))
 
 
