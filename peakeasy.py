@@ -27,7 +27,7 @@ def main_init(date):
 
     #stockfile = base.getPickle()
 
-    period = 6
+    period = 14 #14 based on optimizations for MSFT for last 2Q run on 12-30-2019
     stoplossFactor = 0.85
     stock = 'MSFT'
     
@@ -62,9 +62,6 @@ def main_init(date):
     isPeak = base.isPeak(ar_close)
     isTrough = base.isTrough(ar_close)
     
-    #TODO Comment
-    # isTrough = True
-    # isPeak = False
 
     print("Price{}, Is Peak:{}, Is Trough:{}".format(
         latestPrice, isPeak, isTrough))
