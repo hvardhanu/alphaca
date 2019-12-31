@@ -11,7 +11,6 @@ import time
 class BaseAlpha:
     
     api_time_format = '%Y-%m-%dT%H:%M:%S.%f-04:00'
-
     params = {'backtest':False}
 
     def __init__(self):
@@ -40,17 +39,33 @@ class BaseAlpha:
                 print("Bought {}, cash is now {}".format(buy_quantity,self.cash))
             return
         ##
+        try:
+            buy_order = self.api.submit_order(symbol=stock,
+                                            qty=buy_quantity, side='buy',
+                                            time_in_force='day',
+                                            type='market')
+            print("Buy order placed", buy_order)
+        except Exception as e:
+            print("Exception while creating order:",e)
+            return False
         
-        buy_order = self.api.submit_order(symbol=stock,
-                                          qty=buy_quantity, side='buy',
-                                          time_in_force='day',
-                                          type='market')
-        print("Buy order placed", buy_order)
-        
-        time.sleep(0.5)
+        time.sleep(1)
 
         try:
-            buy_order = self.api.get_order(buy_order.id)
+            status = ""
+            counter = 0
+            #Wait for order to get filled, try 5 times
+            while (status != "filled") and counter<5:
+                buy_order = self.api.get_order(buy_order.id)
+                status = buy_order.status
+                counter=counter+1
+                print("Wating for buy order to be filled, try {}".format(counter))
+                time.sleep(1)
+            
+            # If not filled the foolowing line will raise exception
+            if status!="filled":
+                raise Exception("Waited for 5 seconds but order did not fill")
+
             stop_qty = int(buy_order.filled_qty)
             stop_price = float(buy_order.filled_avg_price)*stoplossFactor
 
@@ -61,13 +76,16 @@ class BaseAlpha:
                                                type='stop')
             print("Stop order placed", stop_order)
         
+            return True
+        
         except Exception as e:
-            print("Error while placing matching stop order with Buy, cancelling buy order:",e)
+            print("Error while placing matching stop order with Buy, cancelling buy order:",buy_order.id,e)
             try:
                 self.api.cancel_order(buy_order.id)
                 self.api.close_position(stock)
             except Exception as ex:
                 print("Error while cancelling buy order",ex)
+            return False
 
     def closePositionStock(self,stock):
         #Bt#
