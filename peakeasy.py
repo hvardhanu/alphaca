@@ -68,9 +68,19 @@ def main_init(date):
 
     if isPeak:
         # sell (close position) but first cancel any pending stoploss orders
-        base.cancelStopLoss(stock)
-        base.closePositionStock(stock)
-
+        try:
+            base.cancelStopLoss(stock)
+        except Exception as e:
+            print("Exception while calling cancelStopLoss",e)
+            #Keep going and try to close position even if stop loss didnt cancel
+        try:
+            base.closePositionStock(stock)
+        except Exception as e:
+            print("Exception while trying to Close postions, we will now try to place a stoploss",e)
+            # Now we failed to close postion lets try to set up a stoploss
+            position=base.getPosition(stock)
+            base.orderGTCStopLoss(stock,position.qty,latestPrice*stoplossFactor)
+        
     if isTrough:
         # place a buy order and a stop loss order,
         # cancel/liquidate buy if stop loss is not placed

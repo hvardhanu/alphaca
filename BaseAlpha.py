@@ -68,24 +68,26 @@ class BaseAlpha:
 
             stop_qty = int(buy_order.filled_qty)
             stop_price = float(buy_order.filled_avg_price)*stoplossFactor
-
-            stop_order = self.api.submit_order(symbol=stock,
-                                               qty=stop_qty, side='sell',
-                                               time_in_force='gtc',
-                                               stop_price=stop_price,
-                                               type='stop')
-            print("Stop order placed", stop_order)
-        
+            
+            self.orderGTCStopLoss(stock,stop_qty,stop_price)
             return True
         
         except Exception as e:
             print("Error while placing matching stop order with Buy, cancelling buy order:",buy_order.id,e)
             try:
                 self.api.cancel_order(buy_order.id)
-                self.api.close_position(stock)
             except Exception as ex:
-                print("Error while cancelling buy order",ex)
+                print("Error while cancelling buy order,closing positions",ex)
+                self.api.close_position(stock)
             return False
+    
+    def getOrder(self,order_id):
+        order = self.api.get_order(order_id)
+        return order
+
+    def orderGTCStopLoss(self,stock,qty,price):
+            stop_order=self.api.submit_order(symbol=stock,qty=qty,side="sell",type="stop",time_in_force="gtc",stop_price=price)
+            print("Stop order placed", stop_order)
 
     def closePositionStock(self,stock):
         #Bt#
@@ -95,13 +97,10 @@ class BaseAlpha:
             self.btQty=0
             return
         ##
-
-        try:
-            self.api.close_position(stock)
-            print("Closed all positions in", stock)
-        except Exception as e:
-            print(e)
-
+        
+        self.api.close_position(stock)
+        print("Closed all positions in", stock)
+       
     def cancel_all_ord(self):
         try:
             self.api.cancel_all_orders()
@@ -218,6 +217,33 @@ class BaseAlpha:
         #print(latest_bar.__getattr__('t'))
         #return the close price of the last bar
         return latest_bar.__getattr__('c')
+    
+    def cancelStopLoss(self,symbol):
+        #BT#
+        if self.backtest:
+            self.btStopLossPrice=0
+            return
+        ##
+
+        ls_o = self.api.list_orders()
+        for o in ls_o:
+            #print(o)
+            if o.symbol == symbol and o.type=='stop' and o.side=='sell':
+                self.api.cancel_order(o.id)
+                print("Canceled open order-id:{}, type:{}, side:{}".format(o.id,o.type,o.side))
+                status = ""
+                count=0
+                while status!="canceled" and count<5:
+                    print("Waiting for StopLoss order to be canceled")
+                    time.sleep(1)
+                    order=self.getOrder(o.id)
+                    status = order.status
+                    count=count+1
+                if status!="canceled":
+                    raise Exception("Waited for 5 seconds but order did not cancel") 
+    
+    def getPosition(self,stock):
+        return self.api.get_position(stock)
 
     def setPickle(self,obj,pickle_file):
         with open(pickle_file, 'wb') as f:
@@ -235,20 +261,7 @@ class BaseAlpha:
             print(e)
         return data
 
-    def cancelStopLoss(self,symbol):
-        #BT#
-        if self.backtest:
-            self.btStopLossPrice=0
-            return
-        ##
 
-        ls_o = self.api.list_orders()
-        for o in ls_o:
-            #print(o)
-            if o.symbol == symbol and o.type=='stop' and o.side=='sell':
-                print("Canceling open order-id:{}, type:{}, side:{}".format(o.id,o.type,o.side))
-                self.api.cancel_order(o.id)
-    
 
 
 
