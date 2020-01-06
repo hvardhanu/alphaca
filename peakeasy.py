@@ -27,7 +27,7 @@ def main_init(date):
 
     #stockfile = base.getPickle()
 
-    period = 14 #14 based on optimizations for MSFT for last 2Q run on 12-30-2019
+    period = 28 # Running 28 days as standard
     stoplossFactor = 0.85
     stock = 'MSFT'
     
@@ -36,7 +36,8 @@ def main_init(date):
     #period = period-1
     df_data = base.getArrayFromBars(stock, period,date)
     print(df_data)
-
+    rsi = base.getRSI(df_data['close'],14)
+    print("RSI is:",rsi)
     latestPrice = float(base.getCurrentPrice(stock))
 
     buying_power = float(base.get_buying_power())
@@ -79,9 +80,10 @@ def main_init(date):
             print("Exception while trying to Close postions, we will now try to place a stoploss",e)
             # Now we failed to close postion lets try to set up a stoploss
             position=base.getPosition(stock)
-            base.orderGTCStopLoss(stock,position.qty,latestPrice*stoplossFactor)
+            if int(position.qty>0):
+                base.orderGTCStopLoss(stock,position.qty,latestPrice*stoplossFactor)
         
-    if isTrough:
+    if isTrough and rsi>30 and rsi<70:
         # place a buy order and a stop loss order,
         # cancel/liquidate buy if stop loss is not placed
         if buy_quantity>0:
