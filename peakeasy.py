@@ -54,7 +54,7 @@ def main_init(date):
         date = timestamp.strftime("%Y-%m-%d")
     
     #API Gives today's bar as well we dont want that
-    ar_close = np.array(df_data['close'])
+    ar_close = np.array(df_data['close'][14:])
     # adding the latest price as the getArrayFromBars does not have today's price
     
     #ar_close = np.append(ar_close, latestPrice)
