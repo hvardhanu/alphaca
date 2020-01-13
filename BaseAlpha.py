@@ -7,6 +7,7 @@ import alpaca_trade_api as tradeapi
 from scipy.signal import find_peaks
 import pickle
 import time
+from tinydb import TinyDB, Query
 
 
 class BaseAlpha:
@@ -14,13 +15,20 @@ class BaseAlpha:
     api_time_format = '%Y-%m-%dT%H:%M:%S.%f-04:00'
     params = {'backtest': False}
 
-    def __init__(self):
+    def __init__(self, strategy):
         api = tradeapi.REST(key_id='PK714C2Y2AKEKG1GJHAQ',
                             secret_key='NwgIb/ZhtYWvEyulzuv6BfWnQJk0iqmxSnO/snKv',
                             base_url='https://paper-api.alpaca.markets',
                             api_version='v2')  # or use ENV Vars shown below
         self.api = api
         self.backtest = False
+        self.db = TinyDB(strategy+'.json')
+
+    def getCashLane(self, stock):
+        qry = Query()
+        cash_lanes_rec = self.db.search(qry.type == 'cashlanes')
+        cash_lane = cash_lanes_rec[0][stock]
+        return cash_lane
 
     def enableBackTest(self, cash):
         self.backtest = True
@@ -69,9 +77,20 @@ class BaseAlpha:
                 raise Exception("Waited for 5 seconds but order did not fill")
 
             stop_qty = int(buy_order.filled_qty)
-            stop_price = float(buy_order.filled_avg_price)*stoplossFactor
-
+            filled_price = float(buy_order.filled_avg_price)
+            stop_price = filled_price*stoplossFactor
+            self.db.insert({'id': buy_order.id, 'symbol': buy_order.symbol, 'type': buy_order.type, 'side': buy_order.side,
+                            'submitted_at': buy_order.submitted_at, 'filled_at': buy_order.filled_at,
+                            'qty': buy_order.qty, 'filled_avg_price': buy_order.filled_avg_price, 'status': buy_order.status})
+            
             self.orderGTCStopLoss(stock, stop_qty, stop_price)
+
+            total_spent = stop_qty*filled_price
+            qry = Query()
+            cash_lane = self.getCashLane(stock)
+            final_cash = (cash_lane-total_spent)
+            self.db.update({stock: final_cash}, qry.type == 'cashlanes')
+
             return True
 
         except Exception as e:
@@ -92,6 +111,9 @@ class BaseAlpha:
         stop_order = self.api.submit_order(
             symbol=stock, qty=qty, side="sell", type="stop", time_in_force="gtc", stop_price=price)
         print("Stop order placed", stop_order)
+        self.db.insert({'id': stop_order.id, 'symbol': stop_order.symbol, 'type': stop_order.type, 'side': stop_order.side,
+                        'submitted_at': stop_order.submitted_at, 'filled_at': stop_order.filled_at,
+                        'qty': stop_order.qty, 'filled_avg_price': stop_order.filled_avg_price, 'status': stop_order.status})
 
     def closePositionStock(self, stock):
         #Bt#
@@ -101,9 +123,26 @@ class BaseAlpha:
             self.btQty = 0
             return
         ##
+        # TODO change the logic, retrieve the order and calculate
+        # the post cash, bug: https://github.com/alpacahq/alpaca-trade-api-python/issues/136
+        try:
+            pre_cash = self.get_buying_power()
+        except Exception as e:
+            print(e)
 
         self.api.close_position(stock)
         print("Closed all positions in", stock)
+
+        try:
+            time.sleep(1)
+            post_cash = self.get_buying_power()
+            current_cash = self.getCashLane(stock)
+            additional_cash = post_cash-pre_cash
+            cash_lane = current_cash+additional_cash
+            qry = Query()
+            self.db.update({stock:cash_lane}, qry.type == 'cashlanes')
+        except Exception as e:
+            print("Error occurred while updating DB with cash", e)
 
     def cancel_all_ord(self):
         try:
@@ -263,10 +302,10 @@ class BaseAlpha:
         if buy_price != stoploss_price:
             return int(cash_lose/abs(buy_price-stoploss_price))
 
-    def getRSI(self,df_stock,period):
+    def getRSI(self, df_stock, period):
         df_stock = df_stock.dropna()
         # return the last element of the calculated RSI array
-        rsi=talib.RSI(df_stock, timeperiod=period)
+        rsi = talib.RSI(df_stock, timeperiod=period)
         return rsi[-1]
 
     def setPickle(self, obj, pickle_file):

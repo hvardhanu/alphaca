@@ -11,7 +11,7 @@ from pytz import timezone
 IS_OFFLINE_TESTING = False
 IS_BACKTEST = False
 DAYS_TO_BACKTEST = 60 
-base = BaseAlpha.BaseAlpha()
+base = BaseAlpha.BaseAlpha('peakeasy')
 
 def main_init(date):
 
@@ -30,8 +30,8 @@ def main_init(date):
     period = 28 # Running 28 days as standard
     stoplossFactor = 0.85
     stock = 'MSFT'
+    cash_lane = base.getCashLane(stock) 
     
-
     # getting one less period as we will add an extra i.e. today's price later
     #period = period-1
     df_data = base.getArrayFromBars(stock, period,date)
@@ -41,6 +41,10 @@ def main_init(date):
     latestPrice = float(base.getCurrentPrice(stock))
 
     buying_power = float(base.get_buying_power())
+    
+    #checking if cashlane for stock is lower than buying power, if not then use whatever buying power is left
+    if buying_power>cash_lane:
+        buying_power=cash_lane
     buy_quantity = 0
 
     if latestPrice > 0:
