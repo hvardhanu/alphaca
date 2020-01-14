@@ -25,10 +25,47 @@ class BaseAlpha:
         self.db = TinyDB(strategy+'.json')
 
     def getCashLane(self, stock):
+        
+        try:
+            qry = Query()
+            cash_lanes_rec = self.db.search(qry.type == 'cashlanes')
+            cash_lane = cash_lanes_rec[0][stock]
+            return float(cash_lane)
+        except Exception as e:
+            print("Error in getCashLane",e)
+            return 0
+        
+     
+    def getStocks(self):
+        final_stocks=[]
         qry = Query()
-        cash_lanes_rec = self.db.search(qry.type == 'cashlanes')
-        cash_lane = cash_lanes_rec[0][stock]
-        return cash_lane
+        rec = self.db.search(qry.type == 'cashlanes')
+        stocks = rec[0]
+        for elem in stocks:
+            if elem != 'type':
+                final_stocks.append(elem)
+        return final_stocks
+
+    def getPeriod(self, stock):
+        try:
+            qry = Query()
+            period_rec = self.db.search(qry.type == 'periods')
+            period = period_rec[0][stock]
+            return int(period)
+        except Exception as e:
+            print("Error in getPeriod",e)
+            return 0
+
+     
+    def getStoploss(self, stock):
+        try:
+            qry = Query()
+            stoploss_rec = self.db.search(qry.type == 'stoploss')
+            stoploss = stoploss_rec[0][stock]
+            return float(stoploss)
+        except Exception as e:
+            print("Error in getStoploss",e)
+            return 0
 
     def enableBackTest(self, cash):
         self.backtest = True

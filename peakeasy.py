@@ -13,8 +13,11 @@ Peakasy Strategy
 """
 parser = argparse.ArgumentParser(description='Peakeasy Strategy')
 parser.add_argument("--istesting", default=False, type=bool, help="Are we just testing during non market hours?")
+parser.add_argument("stock", type=str, help="Which Stock?")
+
 args = parser.parse_args()
 
+TOTAL_BARS_TO_GET=28
 IS_OFFLINE_TESTING = args.istesting
 IS_BACKTEST = False
 DAYS_TO_BACKTEST = 60 
@@ -34,15 +37,17 @@ def main_init(date):
 
     #stockfile = base.getPickle()
 
-    period = 28 # Running 28 days as standard
-    stoplossFactor = 0.85
-    stock = 'MSFT'
-    cash_lane = base.getCashLane(stock) 
-    
-    # getting one less period as we will add an extra i.e. today's price later
-    #period = period-1
-    df_data = base.getArrayFromBars(stock, period,date)
+    stock = args.stock
+
+    period = base.getPeriod(stock)
+    stoplossFactor = base.getStoploss(stock)
+    cash_lane = base.getCashLane(stock)
+
+    print("Running for {} Period:{} StoplossFactor:{}, CashLane:{}".format(stock,period,stoplossFactor,cash_lane))
+    #Always get TOTAL_BARS_TO_GET bars
+    df_data = base.getArrayFromBars(stock, TOTAL_BARS_TO_GET,date)
     print(df_data)
+
     rsi = base.getRSI(df_data['close'],14)
     print("RSI is:",rsi)
     latestPrice = float(base.getCurrentPrice(stock))
@@ -64,12 +69,9 @@ def main_init(date):
     if not IS_BACKTEST:
         date = timestamp.strftime("%Y-%m-%d")
     
-    #API Gives today's bar as well we dont want that
-    ar_close = np.array(df_data['close'][14:])
-    # adding the latest price as the getArrayFromBars does not have today's price
-    
-    #ar_close = np.append(ar_close, latestPrice)
-
+    #ar_close = np.array(df_data['close'][14:])
+    start_bar = TOTAL_BARS_TO_GET-period
+    ar_close = np.array(df_data['close'][start_bar:])
     print(ar_close)
     isPeak = base.isPeak(ar_close)
     isTrough = base.isTrough(ar_close)
