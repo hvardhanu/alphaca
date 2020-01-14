@@ -6,9 +6,16 @@ import BaseAlpha as BaseAlpha
 import time
 import numpy as np
 from pytz import timezone
+import argparse
 
+"""
+Peakasy Strategy
+"""
+parser = argparse.ArgumentParser(description='Peakeasy Strategy')
+parser.add_argument("--istesting", default=False, type=bool, help="Are we just testing during non market hours?")
+args = parser.parse_args()
 
-IS_OFFLINE_TESTING = False
+IS_OFFLINE_TESTING = args.istesting
 IS_BACKTEST = False
 DAYS_TO_BACKTEST = 60 
 base = BaseAlpha.BaseAlpha('peakeasy')
