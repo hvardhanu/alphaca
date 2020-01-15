@@ -8,6 +8,7 @@ from scipy.signal import find_peaks
 import pickle
 import time
 from tinydb import TinyDB, Query
+import pathlib
 
 
 class BaseAlpha:
@@ -22,7 +23,11 @@ class BaseAlpha:
                             api_version='v2')  # or use ENV Vars shown below
         self.api = api
         self.backtest = False
-        self.db = TinyDB(strategy+'.json')
+        #getting the path of the current file, where the DB will be stored
+        path = pathlib.Path(__file__).parent.absolute()
+        db_path = str(path)+'/'+strategy+'.json'
+        print("DB PATH",db_path)
+        self.db = TinyDB(db_path)
 
     def getCashLane(self, stock):
         
