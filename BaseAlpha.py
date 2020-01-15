@@ -121,10 +121,7 @@ class BaseAlpha:
             stop_qty = int(buy_order.filled_qty)
             filled_price = float(buy_order.filled_avg_price)
             stop_price = filled_price*stoplossFactor
-            self.db.insert({'id': buy_order.id, 'symbol': buy_order.symbol, 'type': buy_order.type, 'side': buy_order.side,
-                            'submitted_at': buy_order.submitted_at, 'filled_at': buy_order.filled_at,
-                            'qty': buy_order.qty, 'filled_avg_price': buy_order.filled_avg_price, 'status': buy_order.status})
-            
+                        
             self.orderGTCStopLoss(stock, stop_qty, stop_price)
 
             total_spent = stop_qty*filled_price
@@ -153,10 +150,7 @@ class BaseAlpha:
         stop_order = self.api.submit_order(
             symbol=stock, qty=qty, side="sell", type="stop", time_in_force="gtc", stop_price=price)
         print("Stop order placed", stop_order)
-        self.db.insert({'id': stop_order.id, 'symbol': stop_order.symbol, 'type': stop_order.type, 'side': stop_order.side,
-                        'submitted_at': stop_order.submitted_at, 'filled_at': stop_order.filled_at,
-                        'qty': stop_order.qty, 'filled_avg_price': stop_order.filled_avg_price, 'status': stop_order.status})
-
+       
     def closePositionStock(self, stock):
         #Bt#
         if self.backtest:
