@@ -173,8 +173,8 @@ class BaseAlpha:
             time.sleep(1)
             post_cash = self.get_buying_power()
             current_cash = self.getCashLane(stock)
-            additional_cash = post_cash-pre_cash
-            cash_lane = current_cash+additional_cash
+            additional_cash = float(post_cash)-float(pre_cash)
+            cash_lane = float(current_cash)+additional_cash
             qry = Query()
             self.db.update({stock:cash_lane}, qry.type == 'cashlanes')
         except Exception as e:
