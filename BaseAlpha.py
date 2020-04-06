@@ -359,3 +359,13 @@ class BaseAlpha:
         except FileNotFoundError as e:
             print(e)
         return data
+
+    def getATR(self,df_stock_high,df_stock_low,df_stock_close,period):
+        #https://mrjbq7.github.io/ta-lib/func_groups/volatility_indicators.html
+        atr = talib.ATR(df_stock_high,df_stock_low,df_stock_close,timeperiod=period)
+        return atr[-1]
+    
+    def getSpeedDF(self,df_stock, period):
+        #print(df_stock)
+        speed = (df_stock[-1]-df_stock[-int(period)])/int(period)
+        return speed
