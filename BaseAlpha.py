@@ -368,4 +368,14 @@ class BaseAlpha:
     def getSpeedDF(self,df_stock, period):
         #print(df_stock)
         speed = (df_stock[-1]-df_stock[-int(period)])/int(period)
-        return speed
+        return float(speed)
+    
+    # Compares the given list with the stocks in the portfolio and returns
+    # the ones that are NOT in the portfolio
+    def getNotOverlappingStocks(self,stock_list):
+        list_positions = self.api.list_positions()
+        stock_list = list(set(stock_list))
+        for position in list_positions:
+            if position.symbol in stock_list:
+                stock_list.remove(position.symbol)
+        return stock_list
