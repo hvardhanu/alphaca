@@ -102,7 +102,7 @@ def buy():
             buy_sizing=float(account.portfolio_value)*buy_percentage
             number_of_stocks=base.calculatePositionSizing(buy_sizing,price,stop_price)
             if float(account.buying_power)>=buy_sizing:
-                base.api.submit_order(stock,number_of_stocks,side='buy',type='market',time_in_force='day',order_class='oto',stop_loss=dict(stop_price=stop_price),client_order_id='nascar-'+stock+'-stop')
+                base.api.submit_order(stock,number_of_stocks,side='buy',type='market',time_in_force='gtc',order_class='oto',stop_loss=dict(stop_price=stop_price),client_order_id='nascar-'+stock+'-stop')
                 print(number_of_stocks,"units of",stock,"bought")
             else:
                 print("Lack of buying power for", stock, "buying power is", account.buying_power)
