@@ -85,10 +85,10 @@ if IS_LIVE:
       timeframe=bt.TimeFrame.TFrame("Days"))
 else:
    data0 = DataFactory(
-      dataname='AAPL',
+      dataname='DBX',
       timeframe=bt.TimeFrame.TFrame("Days"),
-      fromdate=pd.Timestamp('2018-02-26'),
-      todate=pd.Timestamp('2019-04-18'),
+      fromdate=pd.Timestamp('2019-01-01'),
+      todate=pd.Timestamp('2020-12-30'),
       historical=True)
 
 cerebro.adddata(data0)

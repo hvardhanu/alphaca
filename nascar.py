@@ -30,7 +30,7 @@ period = args.period
 method = args.method
 buy_percentage=args.buyPercentage
 stoploss_factor=args.stoplossFactor
-
+date = datetime.today()
 stock_list=['IT','NKE','DIS','F','GM','MSFT','SBUX','AMD','CRM','DOCU','FB','UPS','AMGN','DAL',
 'USO','DBX','GLD','XLK','XLY','XLP','XRT','XLF','XLI','VXX','LQD','AGG','TLT','EMB','MUB','IEF',
 'XLE','XLV','XLB','XLU','UUP','FXI','VGK','GDX','INDA','EWJ','RSX','SPY']
@@ -39,7 +39,6 @@ db = base.db
 #screens stock, sends a IFTTT alert, adds the stocks to DB for buy to "buy"
 def screen():
     ifttt_req=''
-    date = datetime.today()
     stock_list_out=[]
     buyQ=Query()
     #Todo
@@ -78,6 +77,11 @@ def screen():
 # if not then buys them, 
 # set the initial stoploss
 def buy():
+    print("Hello! executing NASCAR buy on:", date) 
+    IS_MARKET_OPEN,timestamp = base.isMarketOpen()
+    if not IS_MARKET_OPEN:
+        print("The market is closed, no business here, so exiting!")
+        return 
     # Picks the buy stocks for the day,
     buyQ=Query()
     record=db.get(buyQ.type=='buy')
@@ -113,6 +117,12 @@ def buy():
 
 # # Picks up the positions from the portfolio and re-sets the stop losses
 def adjust():
+    print("Hello! executing NASCAR adjust on:", date) 
+    IS_MARKET_OPEN,timestamp = base.isMarketOpen()
+    if not IS_MARKET_OPEN:
+        print("The market is closed, no business here, so exiting!")
+        return 
+
     # Get positions from the portfolio
     list_positions = base.api.list_positions()
     for position in list_positions: 
