@@ -80,17 +80,7 @@ class BaseAlpha:
         self.btQty = 0
         self.btPortfolio = cash
 
-    def placeBuyWithStop(self, stock, buy_quantity, stoplossFactor):
-        #BT#
-        if self.backtest:
-            if buy_quantity > 0:
-                self.cash = self.cash - buy_quantity*self.btPrice
-                self.btStopLossPrice = self.btPrice*stoplossFactor
-                self.btQty = self.btQty + buy_quantity
-                print("Bought {}, cash is now {}".format(
-                    buy_quantity, self.cash))
-            return
-        ##
+    def placeBuyWithStop(self, stock, buy_quantity, stoplossFactor,stoploss_order_id="default_orderID"):
         try:
             buy_order = self.api.submit_order(symbol=stock,
                                               qty=buy_quantity, side='buy',
@@ -120,15 +110,10 @@ class BaseAlpha:
 
             stop_qty = int(buy_order.filled_qty)
             filled_price = float(buy_order.filled_avg_price)
-            stop_price = filled_price*stoplossFactor
+            stop_price = filled_price-stoplossFactor
                         
-            self.orderGTCStopLoss(stock, stop_qty, stop_price)
+            self.orderGTCStopLoss(stock, stop_qty, stop_price,stoploss_order_id)
 
-            total_spent = stop_qty*filled_price
-            qry = Query()
-            cash_lane = self.getCashLane(stock)
-            final_cash = (cash_lane-total_spent)
-            self.db.update({stock: final_cash}, qry.type == 'cashlanes')
 
             return True
 
@@ -146,9 +131,9 @@ class BaseAlpha:
         order = self.api.get_order(order_id)
         return order
 
-    def orderGTCStopLoss(self, stock, qty, price):
+    def orderGTCStopLoss(self, stock, qty, price,stoploss_order_id):
         stop_order = self.api.submit_order(
-            symbol=stock, qty=qty, side="sell", type="stop", time_in_force="gtc", stop_price=price)
+            symbol=stock, qty=qty, side="sell", type="stop", time_in_force="gtc", stop_price=price,client_order_id=stoploss_order_id)
         print("Stop order placed", stop_order)
        
     def closePositionStock(self, stock):
