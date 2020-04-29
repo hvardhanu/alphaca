@@ -107,8 +107,11 @@ def buy():
             number_of_stocks=base.calculatePositionSizing(buy_sizing,price,stop_price)
             if float(account.buying_power)>=buy_sizing:
                 #base.api.submit_order(stock,number_of_stocks,side='buy',type='market',time_in_force='gtc',order_class='oto',stop_loss=dict(stop_price=stop_price),client_order_id='nascar-'+stock+'-stop')
-                base.placeBuyWithStop(stock,number_of_stocks,atr*stoploss_factor,stoploss_order_id='nascar-'+stock+'-stop')
-                print(number_of_stocks,"units of",stock,"bought")
+                stop_order_id = base.placeBuyWithStop(stock,number_of_stocks,atr*stoploss_factor)
+                if stop_order_id !=False:
+                    qry=Query()
+                    base.db.upsert({'type':stock+'-id','id':stop_order_id},qry.type==stock+'-id')
+                    print(number_of_stocks,"units of",stock,"bought")
             else:
                 print("Lack of buying power for", stock, "buying power is", account.buying_power)
             time.sleep(0.5)
@@ -137,7 +140,9 @@ def adjust():
             if speed_latest>0:
                 price=stock_df['close'][-1]
                 stop_price=price-atr*stoploss_factor
-                clOrderId = 'nascar-'+stock+'-stop'
+                qry = Query()
+                rec = base.db.get(qry.type==stock+'-id')
+                clOrderId=rec['id']
                 order = base.api.get_order_by_client_order_id(clOrderId)
                 base.api.replace_order(stop_price=stop_price,order_id=order.order_id)
                 print("Speed is",speed_latest,"&",stock,"Stoploss IS Updated")

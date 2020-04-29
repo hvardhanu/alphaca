@@ -80,7 +80,7 @@ class BaseAlpha:
         self.btQty = 0
         self.btPortfolio = cash
 
-    def placeBuyWithStop(self, stock, buy_quantity, stoplossFactor,stoploss_order_id="default_orderID"):
+    def placeBuyWithStop(self, stock, buy_quantity, stoplossFactor):
         try:
             buy_order = self.api.submit_order(symbol=stock,
                                               qty=buy_quantity, side='buy',
@@ -112,10 +112,7 @@ class BaseAlpha:
             filled_price = float(buy_order.filled_avg_price)
             stop_price = filled_price-stoplossFactor
                         
-            self.orderGTCStopLoss(stock, stop_qty, stop_price,stoploss_order_id)
-
-
-            return True
+            return self.orderGTCStopLoss(stock, stop_qty, stop_price)
 
         except Exception as e:
             print(
@@ -131,10 +128,11 @@ class BaseAlpha:
         order = self.api.get_order(order_id)
         return order
 
-    def orderGTCStopLoss(self, stock, qty, price,stoploss_order_id):
+    def orderGTCStopLoss(self, stock, qty, price):
         stop_order = self.api.submit_order(
-            symbol=stock, qty=qty, side="sell", type="stop", time_in_force="gtc", stop_price=price,client_order_id=stoploss_order_id)
+            symbol=stock, qty=qty, side="sell", type="stop", time_in_force="gtc", stop_price=price)
         print("Stop order placed", stop_order)
+        return stop_order.id
        
     def closePositionStock(self, stock):
         #Bt#

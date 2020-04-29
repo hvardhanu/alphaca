@@ -97,7 +97,7 @@ class AlphaTest(unittest.TestCase):
             
             #Test the goodie scenario, buy goes through -> stoploss goes through
             # Expected - return True
-            self.assertEqual(base.placeBuyWithStop('MSFT',1,1),True)
+            self.assertEqual(base.placeBuyWithStop('MSFT',1,1),1234)
             self.assertEqual(api.submit_order.call_count,2)
             self.assertEqual(api.cancel_order.call_count,0)
             self.assertEqual(api.close_position.call_count,0)
