@@ -143,7 +143,6 @@ def adjust():
                 qry = Query()
                 rec = base.db.get(qry.type==stock+'-id')
                 clOrderId=rec['id']
-                #order = base.api.get_order(clOrderId)
                 base.api.replace_order(stop_price=stop_price,order_id=clOrderId)
                 print("Speed is",speed_latest,"&",stock,"Stoploss IS Updated")
             else:
