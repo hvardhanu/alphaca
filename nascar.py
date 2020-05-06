@@ -143,13 +143,16 @@ def adjust():
                 qry = Query()
                 rec = base.db.get(qry.type==stock+'-id')
                 clOrderId=rec['id']
-                base.api.replace_order(stop_price=stop_price,order_id=clOrderId)
+                order = base.api.replace_order(stop_price=stop_price,order_id=clOrderId)
+                stop_order_id = order.id
+                qry=Query()
+                base.db.upsert({'type':stock+'-id','id':stop_order_id},qry.type==stock+'-id')
                 print("Speed is",speed_latest,"&",stock,"Stoploss IS Updated")
             else:
                 print("Speed is",speed_latest,"&",stock,"Stoploss NOT Updated")
             time.sleep(0.5)
         except Exception as e:
-                print("Error in ADJUST",e)
+                print("Error in ADJUST",stock,e)
 
 
 if __name__ == '__main__':
