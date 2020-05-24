@@ -32,7 +32,7 @@ buy_percentage=args.buyPercentage
 stoploss_factor=args.stoplossFactor
 date = datetime.today()
 stock_list=['IT','NKE','DIS','F','GM','MSFT','SBUX','AMD','CRM','DOCU','FB','UPS','AMGN','DAL',
-'USO','DBX','GLD','XLK','XLY','XLP','XRT','XLF','XLI','VXX','LQD','AGG','TLT','EMB','MUB','IEF',
+'USO','DBX','GLD','XLK','XLY','XLP','XRT','XLF','XLI','LQD','AGG','TLT','EMB','MUB','IEF',
 'XLE','XLV','XLB','XLU','UUP','FXI','VGK','GDX','INDA','EWJ','RSX','SPY']
 
 db = base.db
