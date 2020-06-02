@@ -105,7 +105,7 @@ def buy():
             stop_price=price-atr*stoploss_factor
             buy_sizing=float(account.portfolio_value)*buy_percentage
             number_of_stocks=base.calculatePositionSizing(buy_sizing,price,stop_price)
-            if float(account.buying_power)>=buy_sizing:
+            if float(account.cash)>=number_of_stocks*price:
                 #base.api.submit_order(stock,number_of_stocks,side='buy',type='market',time_in_force='gtc',order_class='oto',stop_loss=dict(stop_price=stop_price),client_order_id='nascar-'+stock+'-stop')
                 stop_order_id = base.placeBuyWithStop(stock,number_of_stocks,atr*stoploss_factor)
                 if stop_order_id !=False:
