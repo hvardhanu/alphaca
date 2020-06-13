@@ -102,11 +102,12 @@ class BaseAlpha:
                 status = buy_order.status
                 counter = counter+1
                 print("Wating for buy order to be filled, try {}".format(counter))
-                time.sleep(1)
+                #Exponentially increasing time between retries
+                time.sleep(counter*2)
 
             # If not filled the foolowing line will raise exception
             if status != "filled":
-                raise Exception("Waited for 5 seconds but order did not fill")
+                raise Exception("Waited and checked 5 times, but order did not fill")
 
             stop_qty = int(buy_order.filled_qty)
             filled_price = float(buy_order.filled_avg_price)
