@@ -142,9 +142,14 @@ def adjust():
                 stop_price=price-atr*stoploss_factor
                 qry = Query()
                 rec = base.db.get(qry.type==stock+'-id')
-                clOrderId=rec['id']
-                order = base.api.replace_order(stop_price=stop_price,order_id=clOrderId)
-                stop_order_id = order.id
+                clOrderId=rec['id']     
+                old_order = base.api.get_order(clOrderId)
+                if old_order.status == 'new' or old_order.status =='replaced':
+                    order = base.api.replace_order(stop_price=stop_price,order_id=clOrderId)
+                    stop_order_id = order.id
+                else:
+                    print("Stop order seems to have expired, we will try to place a new Stop one")
+                    stop_order_id = base.orderGTCStopLoss(stock,position.qty,stop_price)
                 qry=Query()
                 base.db.upsert({'type':stock+'-id','id':stop_order_id},qry.type==stock+'-id')
                 print("Speed is",speed_latest,"&",stock,"Stoploss IS Updated")
