@@ -86,17 +86,17 @@ def buy():
     buyQ=Query()
     record=db.get(buyQ.type=='buy')
     buy_stocks=record['stocks']
-    account = base.api.get_account()
     #checks if already bought
     #GET open postions - retrieve stocks
     buy_stocks=base.getNotOverlappingStocks(buy_stocks)
     print("List of BUY candidates",buy_stocks)
-    
     for stock in buy_stocks:
         #caculate number of stocks
         #buy
         try:
-            #price=base.getCurrentPrice(stock)
+            account = base.api.get_account()
+            print("Cash :",account.cash)
+            time.sleep(0.5)
             stock_bars = base.api.get_barset(stock, timeframe='day', limit=period+2)
             stock_df=stock_bars.df[stock]
             price=float(stock_df['close'][-1])
@@ -113,7 +113,7 @@ def buy():
                     base.db.upsert({'type':stock+'-id','id':stop_order_id},qry.type==stock+'-id')
                     print(number_of_stocks,"units of",stock,"bought")
             else:
-                print("Lack of buying power for", stock, "buying power is", account.buying_power)
+                print("Lack of buying power (cash) for", stock)
             time.sleep(0.5)
         except Exception as e:
             print("Error in BUY",e)
