@@ -55,7 +55,7 @@ def screen():
         #print(speed_last)
 
         if speed_last<0 and speed_latest>=0:
-            print('BUY',stock)
+            print('BUY:',stock, 'Last speed:',speed_last,'Latest speed:',speed_latest)
             stock_list_out.append(stock)
             #Get ATR
             atr=base.getATR(stock_df['high'],stock_df['low'],stock_df['close'],period)
