@@ -38,7 +38,6 @@ stock_list=['IT','NKE','DIS','F','GM','MSFT','SBUX','AMD','CRM','DOCU','FB','UPS
 db = base.db
 #screens stock, sends a IFTTT alert, adds the stocks to DB for buy to "buy"
 def screen():
-    ifttt_req=''
     stock_list_out=[]
     buyQ=Query()
     #Todo
@@ -59,7 +58,6 @@ def screen():
             stock_list_out.append(stock)
             #Get ATR
             atr=base.getATR(stock_df['high'],stock_df['low'],stock_df['close'],period)
-            ifttt_req=ifttt_req+','+stock+'-ATR-'+str(atr)
 
         
         time.sleep(1)
@@ -67,10 +65,6 @@ def screen():
     db.upsert({'type':'buy','stocks': stock_list_out,'date':str(date)},buyQ.type=='buy')
     db.insert({'type':'record','stocks': stock_list_out,'date':str(date)})
 
-    #now send the request to IFTTT
-    if ifttt_req!='':
-        conn = http.client.HTTPSConnection("maker.ifttt.com")
-        conn.request("POST","/trigger/nascar_list/with/key/ehSoX21int_FlYv5fF9Tg?value1="+ifttt_req)
 
 # Picks the buy stocks for the day,
 # checks if already bought, 
@@ -80,7 +74,7 @@ def buy():
     print("Hello! executing NASCAR buy on:", date) 
     IS_MARKET_OPEN,timestamp = base.isMarketOpen()
     if not IS_MARKET_OPEN:
-        print("The market is closed, no business here, so exiting!")
+        print(timestamp,"The market is closed, no business here, so exiting!")
         return 
     # Picks the buy stocks for the day,
     buyQ=Query()
@@ -144,7 +138,7 @@ def adjust():
             rec = base.db.get(qry.type==stock+'-id')
             clOrderId=rec['id']     
             old_order = base.api.get_order(clOrderId)
-
+            stop_order_id = '0'
             if speed_latest>0:
                 if old_order.status == 'new' or old_order.status =='replaced':
                     order = base.api.replace_order(stop_price=stop_price,order_id=clOrderId)
@@ -162,7 +156,8 @@ def adjust():
                     stop_order_id = base.orderGTCStopLoss(stock,position.qty,stop_price)       
             
             qry=Query()
-            base.db.upsert({'type':stock+'-id','id':stop_order_id},qry.type==stock+'-id')
+            if stop_order_id is not '0':
+                base.db.upsert({'type':stock+'-id','id':stop_order_id},qry.type==stock+'-id')
             time.sleep(0.5)
         except Exception as e:
                 print("Error in ADJUST",stock,e)
