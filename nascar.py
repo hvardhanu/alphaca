@@ -42,7 +42,7 @@ def screen():
     buyQ=Query()
     #Todo
     print("Hello! executing NASCAR screener on:", date)
-
+    trending_stock_dict = {}
     for stock in stock_list:
         stock_bars = base.api.get_barset(stock, timeframe='day', limit=period+2)
         stock_df=stock_bars.df[stock]
@@ -54,14 +54,15 @@ def screen():
         #print(speed_last)
 
         if speed_last<0 and speed_latest>=0:
-            print('BUY:',stock, 'Last speed:',speed_last,'Latest speed:',speed_latest)
-            stock_list_out.append(stock)
-            #Get ATR
-            atr=base.getATR(stock_df['high'],stock_df['low'],stock_df['close'],period)
-
-        
-        time.sleep(1)
+            #Adding not subs. as speed_last is already -ve
+            speed_change = speed_latest+speed_last
+            trending_stock_dict[speed_change]=stock
+            print('BUY:',stock, 'Last speed:',speed_last,'Latest speed:',speed_latest,'delta:',speed_change)
+            
+        time.sleep(0.5)
     
+    stock_list_out = base.sortStocks(trending_stock_dict)
+    base.fireStoreSetStockList(stock_list_out)
     db.upsert({'type':'buy','stocks': stock_list_out,'date':str(date)},buyQ.type=='buy')
     db.insert({'type':'record','stocks': stock_list_out,'date':str(date)})
 

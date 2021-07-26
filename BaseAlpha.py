@@ -9,6 +9,9 @@ import pickle
 import time
 from tinydb import TinyDB, Query
 import pathlib
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 
 class BaseAlpha:
@@ -23,11 +26,16 @@ class BaseAlpha:
                             api_version='v2')  # or use ENV Vars shown below
         self.api = api
         self.backtest = False
+        self.strategy=strategy
         #getting the path of the current file, where the DB will be stored
         path = pathlib.Path(__file__).parent.absolute()
         db_path = str(path)+'/'+strategy+'.json'
         print("DB PATH",db_path)
         self.db = TinyDB(db_path)
+        
+        cred = credentials.Certificate(str(path)+'/alphaca-f275d9d82f6b.json')
+        firebase_admin.initialize_app(cred)
+        self.fire_db = firestore.client()
 
     def getCashLane(self, stock):
         
@@ -363,3 +371,23 @@ class BaseAlpha:
             if position.symbol in stock_list:
                 stock_list.remove(position.symbol)
         return stock_list
+    
+    # A function to take a dictionary {speed:stock} and return a list of sorted stocks
+    def sortStocks(self,stock_dic):
+        sorted_k = sorted((k for k,v in stock_dic.items()),reverse=True)
+        sorted_v = [stock_dic[k] for k in sorted_k]
+        return sorted_v
+
+    def fireStoreSetStockList(self, stocks):
+        doc = self.fire_db.collection(self.strategy).document(u'latest_list')
+        doc.set({u'latest':stocks})
+
+    def fireStoreGetStockList(self):
+        ref = self.fire_db.document(self.strategy,'latest_list')
+        doc = ref.get()
+        stock_dict=doc.to_dict()
+        return stock_dict[u'latest']
+
+
+
+
