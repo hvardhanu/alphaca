@@ -20,8 +20,8 @@ class BaseAlpha:
     params = {'backtest': False}
 
     def __init__(self, strategy):
-        api = tradeapi.REST(key_id='PK714C2Y2AKEKG1GJHAQ',
-                            secret_key='NwgIb/ZhtYWvEyulzuv6BfWnQJk0iqmxSnO/snKv',
+        api = tradeapi.REST(key_id='',
+                            secret_key='',
                             base_url='https://paper-api.alpaca.markets',
                             api_version='v2')  # or use ENV Vars shown below
         self.api = api
